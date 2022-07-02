@@ -44,8 +44,8 @@ app.get('/newkey', (req, res) => {
             keys[newkey] = {
                 "value": newkey,
                 "valid": true,
-                "initialDate": new Date().toLocaleString(),
-                "expireDate": new Date(new Date().getTime() + (1000 * 60 * 60 * 24 * 30)).toLocaleString()
+                "initialDate": new Date().getTime(),
+                "expireDate": new Date().getTime() + (1000 * 60 * 60 * 24 * 30)
             };
             fs.writeFileSync('./keys.json', JSON.stringify(keys, null, 2));
             res.json(keys[newkey]);
@@ -53,4 +53,28 @@ app.get('/newkey', (req, res) => {
     } else {
         res.send('Wrong API key');
     }
+})
+
+app.get('/validate', (req, res) => {
+    var keys = JSON.parse(fs.readFileSync('./keys.json', 'utf8'));
+    if (keys.hasOwnProperty(req.query.key)) {
+        let expireDate = keys[req.query.key].expireDate;
+        let currentDate = new Date().getTime();
+
+        if (currentDate > expireDate) {
+            keys[req.query.key].valid = false;
+            fs.writeFileSync('./keys.json', JSON.stringify(keys, null, 2));
+            res.json({
+                valid: true
+            });
+        } else {
+            res.json({
+                valid: true
+            });
+        }
+
+    } else {
+        res.send('Key not found');
+    }
+
 })
